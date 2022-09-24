@@ -1,0 +1,95 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import sklearn.datasets
+from sklearn.model_selection import train_test_split
+
+iris_dataset = sklearn.datasets.load_iris()
+
+print(iris_dataset)
+
+data_frame = pd.DataFrame(iris_dataset.data, columns = iris_dataset.feature_names)
+
+data_frame.head()
+
+data_frame['label'] = iris_dataset.target
+
+data_frame.shape
+
+data_frame.info()
+
+data_frame.describe()
+
+data_frame['label'].value_counts()
+
+X = data_frame.drop(columns='label', axis=1)
+Y = data_frame['label']
+
+print(X)
+
+print(Y)
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=2)
+
+print(X.shape, X_train.shape, X_test.shape)
+
+from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+X_train_std = scaler.fit_transform(X_train)
+
+X_test_std = scaler.transform(X_test)
+
+import tensorflow as tf 
+tf.random.set_seed(3)
+from tensorflow import keras
+
+
+model = keras.Sequential([
+                          keras.layers.Flatten(input_shape=(4,)),
+                          keras.layers.Dense(10, activation='relu'),
+                          keras.layers.Dense(3, activation='sigmoid')
+])
+
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+
+history = model.fit(X_train_std, Y_train, validation_split=0.1, epochs=20)
+
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+
+plt.legend(['training data', 'validation data'], loc = 'upper right')
+
+accuracy_train=model.evaluate(X_train_std,Y_train)
+print(accuracy_train)
+
+loss, accuracy_test = model.evaluate(X_test_std, Y_test)
+print(accuracy_test)
+
+print(X_test_std.shape)
+print(X_test_std[0])
+
+Y_pred = model.predict(X_test_std)
+
+print(Y_pred.shape)
+print(Y_pred[0])
+
+print(X_test)
+
+print(Y_pred)
+
+
+Y_pred_labels = [np.argmax(i) for i in Y_pred]
+print(Y_pred_labels)
+
+from sklearn.metrics import f1_score
+print(f1_score(Y_test,Y_pred_labels,average="macro"))
